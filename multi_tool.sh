@@ -22,7 +22,6 @@ while test $# -gt 0; do
 		echo
 		echo -e "You can use either \"=\" or \" \" as an option and value ${C_LGn}delimiter${RES}"
 		echo
-		echo
 		return 0
 		;;
 	-op|--open-ports)
@@ -86,12 +85,7 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 		open_ports
 		cd $HOME/massa/massa-client/
 		sudo cp $HOME/massa_backup/wallet.dat $HOME/massa/massa-client/wallet.dat
-		local wallet_address="null"
-		while [ "$wallet_address" = "null" ]; do
-			local wallet_address=`sed -n 2p <<< $(./massa-client -j wallet_info) | jq -r "[.[]] | .[0].address_info.address"`
-		done
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/insert_variables.sh)
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
 		cd
 		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 		printf_n "
@@ -153,12 +147,7 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 				sudo systemctl restart massad
 				sudo cp $HOME/massa_backup/wallet.dat $HOME/massa/massa-client/wallet.dat	
 			fi
-			local wallet_address="null"
-			while [ "$wallet_address" = "null" ]; do
-				local wallet_address=`sed -n 2p <<< $(./massa-client -j wallet_info) | jq -r "[.[]] | .[0].address_info.address"`
-			done
-			. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
-			. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/insert_variables.sh)
+			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
 			if [ ! -d $HOME/massa_backup ]; then
 				mkdir $HOME/massa_backup
 				sudo cp $HOME/massa/massa-client/wallet.dat $HOME/massa_backup/wallet.dat
@@ -197,7 +186,7 @@ install_source() {
 		sudo apt upgrade -y
 		sudo apt install unzip jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/rust.sh) -n
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/rust.sh) -n
 		if [ ! -d $HOME/massa/ ]; then
 			git clone --branch testnet https://gitlab.com/massalabs/massa.git
 		fi
@@ -226,12 +215,7 @@ ${C_LGn}Client installation...${RES}
 "
 		cd $HOME/massa/massa-client/
 		cargo run --release wallet_new_privkey
-		local wallet_address="null"
-		while [ "$wallet_address" = "null" ]; do
-			local wallet_address=`sed -n 2p <<< $(cargo run --release -j wallet_info) | jq -r "[.[]] | .[0].address_info.address"`
-		done
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/raw/main/insert_variable.sh) -n massa_log -v "sudo journalctl -f -n 100 -u massad" -a
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_log -v "sudo journalctl -f -n 100 -u massad" -a
 	fi
 	printf_n "${C_LGn}Done!${RES}"
 	cd
