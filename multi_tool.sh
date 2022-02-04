@@ -1,32 +1,3 @@
-Skip to content
-Search or jump to…
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@MrN1x0n 
-MrN1x0n
-/
-MassaNode
-Public
-Code
-Issues
-Pull requests
-Actions
-Projects
-Wiki
-Security
-Insights
-Settings
-MassaNode/multi_tool.sh
-@MrN1x0n
-MrN1x0n Update multi_tool.sh
-Latest commit 39063a1 1 minute ago
- History
- 1 contributor
-246 lines (225 sloc)  7.94 KB
-   
 #!/bin/bash
 # Default variables
 function="install"
@@ -50,7 +21,6 @@ while test $# -gt 0; do
 		echo -e "  -s, --source       install the node using a source code"
 		echo
 		echo -e "You can use either \"=\" or \" \" as an option and value ${C_LGn}delimiter${RES}"
-		echo
 		return 0
 		;;
 	-op|--open-ports)
@@ -91,12 +61,12 @@ update() {
 	wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/${massa_version}/massa_${massa_version}_release_linux.tar.gz"
 	if [ `wc -c < "$HOME/massa.tar.gz"` -ge 1000 ]; then
 		rm -rf $HOME/massa/
-		unzip $HOME/massa.tar.gz -d $HOME/massa/
-		rm -rf $HOME/massa.tar.gz
+		tar -xvf $HOME/massa.tar.gz
 		chmod +x $HOME/massa/massa-node/massa-node $HOME/massa/massa-client/massa-client
 		printf "[Unit]
 Description=Massa Node
 After=network-online.target
+
 [Service]
 User=$USER
 WorkingDirectory=$HOME/massa/massa-node
@@ -104,6 +74,7 @@ ExecStart=$HOME/massa/massa-node/massa-node
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=65535
+
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 		sudo systemctl enable massad
@@ -117,18 +88,21 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 		printf_n "
 The node was ${C_LGn}updated${RES}.
+
 \tv ${C_LGn}Useful commands${RES} v
+
 To run a client: ${C_LGn}massa_client${RES}
 To view the node status: ${C_LGn}sudo systemctl status massad${RES}
 To view the node log: ${C_LGn}massa_log${RES}
 To restart the node: ${C_LGn}sudo systemctl restart massad${RES}
+
 CLI client commands (use ${C_LGn}massa_cli_client -h${RES} to view the help page):
 ${C_LGn}`compgen -a | grep massa_ | sed "/massa_log/d"`${RES}
 "
 	else
 		printf_n "${C_LR}Archive with binary downloaded unsuccessfully!${RES}\n"
 	fi
-	rm -rf massa.tar.gz
+	rm -rf $HOME/massa.tar.gz
 }
 install() {
 	if [ -d $HOME/massa/ ]; then
@@ -136,19 +110,20 @@ install() {
 	else
 		sudo apt update
 		sudo apt upgrade -y
-		sudo apt install unzip jq curl pkg-config git build-essential libssl-dev -y
+		sudo apt install jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
 		mkdir -p $HOME/massa/
 		cd $HOME/massa/
 		local massa_version=`wget -qO- https://api.github.com/repos/massalabs/massa/releases/latest | jq -r ".tag_name"`
-		wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/${massa_version}/release_linux.zip"
+		wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/${massa_version}/massa_${massa_version}_release_linux.tar.gz"
 		if [ `wc -c < "$HOME/massa.tar.gz"` -ge 1000 ]; then
-			unzip $HOME/massa.tar.gz -d $HOME/massa/
+			tar -xvf $HOME/massa.tar.gz
 			rm -rf $HOME/massa.tar.gz
 			chmod +x $HOME/massa/massa-node/massa-node $HOME/massa/massa-client/massa-client
 			printf "[Unit]
 Description=Massa Node
 After=network-online.target
+
 [Service]
 User=$USER
 WorkingDirectory=$HOME/massa/massa-node
@@ -156,6 +131,7 @@ ExecStart=$HOME/massa/massa-node/massa-node
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=65535
+
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 			sudo systemctl enable massad
@@ -180,18 +156,22 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 			printf_n "
 The node was ${C_LGn}started${RES}.
+
 Remember to save files in this directory:
 ${C_LR}$HOME/massa_backup/${RES}
+
 \tv ${C_LGn}Useful commands${RES} v
+
 To run a client: ${C_LGn}massa_client${RES}
 To view the node status: ${C_LGn}sudo systemctl status massad${RES}
 To view the node log: ${C_LGn}massa_log${RES}
 To restart the node: ${C_LGn}sudo systemctl restart massad${RES}
+
 CLI client commands (use ${C_LGn}massa_cli_client -h${RES} to view the help page):
 ${C_LGn}`compgen -a | grep massa_ | sed "/massa_log/d"`${RES}
 "
 		else
-			rm -rf massa.tar.gz
+			rm -rf $HOME/massa.tar.gz
 			printf_n "${C_LR}Archive with binary downloaded unsuccessfully!${RES}\n"
 		fi
 	fi
@@ -202,7 +182,7 @@ install_source() {
 	else
 		sudo apt update
 		sudo apt upgrade -y
-		sudo apt install unzip jq curl pkg-config git build-essential libssl-dev -y
+		sudo apt install jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
 		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/rust.sh) -n
 		if [ ! -d $HOME/massa/ ]; then
@@ -213,6 +193,7 @@ install_source() {
 		printf "[Unit]
 Description=Massa Node
 After=network-online.target
+
 [Service]
 User=$USER
 WorkingDirectory=$HOME/massa/massa-node
@@ -220,6 +201,7 @@ ExecStart=$HOME/massa/target/release/massa-node
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=65535
+
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 		sudo systemctl enable massad
@@ -238,13 +220,17 @@ ${C_LGn}Client installation...${RES}
 	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 	printf_n "
 The node was ${C_LGn}started${RES}.
+
 Remember to save files in this directory:
 ${C_LR}$HOME/massa_backup/${RES}
+
 \tv ${C_LGn}Useful commands${RES} v
+
 To run a client: ${C_LGn}massa_client${RES}
 To view the node status: ${C_LGn}sudo systemctl status massad${RES}
 To view the node log: ${C_LGn}massa_log${RES}
 To restart the node: ${C_LGn}sudo systemctl restart massad${RES}
+
 CLI client commands (use ${C_LGn}massa_cli_client -h${RES} to view the help page):
 ${C_LGn}`compgen -a | grep massa_ | sed "/massa_log/d"`${RES}
 "
