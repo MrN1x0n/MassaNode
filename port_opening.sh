@@ -4,12 +4,12 @@ function="install"
 source="false"
 
 # Options
-. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/colors.sh) --
+. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/colors.sh) --
 option_value(){ echo "$1" | sed -e 's%^--[^=]*=%%g; s%^-[^=]*=%%g'; }
 while test $# -gt 0; do
 	case "$1" in
 	-h|--help)
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/blob/4fe8f397937db68a7d5cb54a17680aa00b483a7d/logo.sh)
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 		echo
 		echo -e "${C_LGn}Functionality${RES}: the script installs, updates a Massa node, and opens required ports"
 		echo
@@ -43,7 +43,7 @@ done
 printf_n(){ printf "$1\n" "${@:2}"; }
 open_ports() {
 	sudo systemctl stop massad
-	. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/ports_opening.sh) 31244 31245
+	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/ports_opening.sh) 31244 31245
 	sudo tee <<EOF >/dev/null $HOME/massa/massa-node/config/config.toml
 [network]
 routable_ip = "`wget -qO- eth0.me`"
@@ -90,10 +90,10 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 		while [ "$wallet_address" = "null" ]; do
 			local wallet_address=`sed -n 2p <<< $(./massa-client -j wallet_info) | jq -r "[.[]] | .[0].address_info.address"`
 		done
-		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
-		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/Massa/main/insert_variables.sh)
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
 		cd
-		. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/blob/4fe8f397937db68a7d5cb54a17680aa00b483a7d/logo.sh)
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 		printf_n "
 The node was ${C_LGn}updated${RES}.
 
@@ -157,8 +157,8 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 			while [ "$wallet_address" = "null" ]; do
 				local wallet_address=`sed -n 2p <<< $(./massa-client -j wallet_info) | jq -r "[.[]] | .[0].address_info.address"`
 			done
-			. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
-			. <(wget -qO- https://raw.githubusercontent.com/SecorD0/Massa/main/insert_variables.sh)
+			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
+			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
 			if [ ! -d $HOME/massa_backup ]; then
 				mkdir $HOME/massa_backup
 				sudo cp $HOME/massa/massa-client/wallet.dat $HOME/massa_backup/wallet.dat
@@ -166,7 +166,7 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 			fi
 			printf_n "${C_LGn}Done!${RES}"
 			cd
-			. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/blob/4fe8f397937db68a7d5cb54a17680aa00b483a7d/logo.sh)
+			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 			printf_n "
 The node was ${C_LGn}started${RES}.
 
@@ -197,7 +197,7 @@ install_source() {
 		sudo apt upgrade -y
 		sudo apt install unzip jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
-		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/installers/rust.sh) -n
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/rust.sh) -n
 		if [ ! -d $HOME/massa/ ]; then
 			git clone --branch testnet https://gitlab.com/massalabs/massa.git
 		fi
@@ -230,12 +230,12 @@ ${C_LGn}Client installation...${RES}
 		while [ "$wallet_address" = "null" ]; do
 			local wallet_address=`sed -n 2p <<< $(cargo run --release -j wallet_info) | jq -r "[.[]] | .[0].address_info.address"`
 		done
-		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
-		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_log -v "sudo journalctl -f -n 100 -u massad" -a
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_wallet_address -v "$wallet_address"
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_log -v "sudo journalctl -f -n 100 -u massad" -a
 	fi
 	printf_n "${C_LGn}Done!${RES}"
 	cd
-	. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/blob/4fe8f397937db68a7d5cb54a17680aa00b483a7d/logo.sh)
+	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 	printf_n "
 The node was ${C_LGn}started${RES}.
 
@@ -257,6 +257,6 @@ ${C_LGn}`compgen -a | grep massa_ | sed "/massa_log/d"`${RES}
 
 # Actions
 sudo apt install wget -y &>/dev/null
-. <(wget -qO- https://github.com/MrN1x0n/MrN1x0n/blob/4fe8f397937db68a7d5cb54a17680aa00b483a7d/logo.sh)
+. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 cd
 $function
