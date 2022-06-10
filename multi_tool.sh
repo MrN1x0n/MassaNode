@@ -4,21 +4,23 @@ function="install"
 source="false"
 
 # Options
-. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/color.sh) --
+. <(wget -qO-  https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/color.sh) --
 option_value(){ echo "$1" | sed -e 's%^--[^=]*=%%g; s%^-[^=]*=%%g'; }
 while test $# -gt 0; do
 	case "$1" in
 	-h|--help)
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+		. <(wget -qO-  https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 		echo
-		echo -e "${C_LGn}Functionality${RES}: the script installs, updates a Massa node, and opens required ports"
+		echo -e "${C_LGn}Functionality${RES}: the script performs many actions related to a Massa node"
 		echo
 		echo -e "${C_LGn}Usage${RES}: script ${C_LGn}[OPTIONS]${RES}"
 		echo
 		echo -e "${C_LGn}Options${RES}:"
-		echo -e "  -h, --help         show the help page"
+		echo -e "  -h,  --help        show the help page"
 		echo -e "  -op, --open-ports  open required ports"
-		echo -e "  -s, --source       install the node using a source code"
+		echo -e "  -s,  --source      install the node using a source code"
+		echo -e "  -rb                replace bootstraps"
+		echo -e "  -un, --uninstall   unistall the node"
 		echo
 		echo -e "You can use either \"=\" or \" \" as an option and value ${C_LGn}delimiter${RES}"
 		return 0
@@ -31,6 +33,14 @@ while test $# -gt 0; do
 		function="install_source"
 		shift
 		;;
+	-rb)
+		function="replace_bootstraps"
+		shift
+		;;
+	-un|--uninstall)
+		function="uninstall"
+		shift
+		;;
 	*|--)
 		break
 		;;
@@ -41,7 +51,7 @@ done
 printf_n(){ printf "$1\n" "${@:2}"; }
 open_ports() {
 	sudo systemctl stop massad
-	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/ports_opening.sh) 31244 31245
+	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MassaNode/main/port_opening.sh) 31244 31245
 	sudo tee <<EOF >/dev/null $HOME/massa/massa-node/config/config.toml
 [network]
 routable_ip = "`wget -qO- eth0.me`"
@@ -85,7 +95,7 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 		sudo cp $HOME/massa_backup/wallet.dat $HOME/massa/massa-client/wallet.dat
 		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
 		cd
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+		. <(wget -qO-  https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 		printf_n "
 The node was ${C_LGn}updated${RES}.
 
@@ -112,8 +122,6 @@ install() {
 		sudo apt upgrade -y
 		sudo apt install jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
-		mkdir -p $HOME/massa/
-		cd $HOME/massa/
 		local massa_version=`wget -qO- https://api.github.com/repos/massalabs/massa/releases/latest | jq -r ".tag_name"`
 		wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/${massa_version}/massa_${massa_version}_release_linux.tar.gz"
 		if [ `wc -c < "$HOME/massa.tar.gz"` -ge 1000 ]; then
@@ -153,7 +161,7 @@ WantedBy=multi-user.target" > /etc/systemd/system/massad.service
 			fi
 			printf_n "${C_LGn}Done!${RES}"
 			cd
-			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+			. <(wget -qO-  https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 			printf_n "
 The node was ${C_LGn}started${RES}.
 
@@ -184,7 +192,7 @@ install_source() {
 		sudo apt upgrade -y
 		sudo apt install jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/rust.sh) -n
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/installers/rust.sh) -n
 		if [ ! -d $HOME/massa/ ]; then
 			git clone --branch testnet https://gitlab.com/massalabs/massa.git
 		fi
@@ -217,7 +225,7 @@ ${C_LGn}Client installation...${RES}
 	fi
 	printf_n "${C_LGn}Done!${RES}"
 	cd
-	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+	. <(wget -qO-  https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 	printf_n "
 The node was ${C_LGn}started${RES}.
 
@@ -235,10 +243,54 @@ CLI client commands (use ${C_LGn}massa_cli_client -h${RES} to view the help page
 ${C_LGn}`compgen -a | grep massa_ | sed "/massa_log/d"`${RES}
 "
 }
-
+uninstall() {
+	sudo systemctl stop massad
+	if [ ! -d $HOME/massa_backup ]; then
+		mkdir $HOME/massa_backup
+		sudo cp $HOME/massa/massa-client/wallet.dat $HOME/massa_backup/wallet.dat
+		sudo cp $HOME/massa/massa-node/config/node_privkey.key $HOME/massa_backup/node_privkey.key
+	fi
+	if [ -f $HOME/massa_backup/wallet.dat ] && [ -f $HOME/massa_backup/node_privkey.key ]; then
+		rm -rf $HOME/massa/ /etc/systemd/system/massa.service /etc/systemd/system/massad.service
+		sudo systemctl daemon-reload
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_log -da
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_client -da
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_cli_client -da
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_node_info -da
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_wallet_info -da
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_buy_rolls -da
+		printf_n "${C_LGn}Done!${RES}"
+	else
+		printf_n "${C_LR}No backup of the necessary files was found, delete the node manually!${RES}"
+	fi	
+}
+replace_bootstraps() {
+	local config_path="$HOME/massa/massa-node/base_config/config.toml"
+	local bootstrap_list=`wget -qO- https://github.com/MrN1x0n/MassaNode/raw/main/bootstrap_list.txt | shuf -n50 | awk '{ print "        "$0"," }'`
+	local len=`wc -l < "$config_path"`
+	local start=`grep -n bootstrap_list "$config_path" | cut -d: -f1`
+	local end=`grep -n "\[optionnal\] port on which to listen" "$config_path" | cut -d: -f1`
+	local end=$((end-1))
+	local first_part=`sed "${start},${len}d" "$config_path"`
+	local second_part="
+    bootstrap_list = [
+${bootstrap_list}
+    ]
+"
+	local third_part=`sed "1,${end}d" "$config_path"`
+	echo "${first_part}${second_part}${third_part}" > "$config_path"
+	sed -i -e "s%retry_delay *=.*%retry_delay = 10000%; " "$config_path"
+	printf_n "${C_LGn}Done!${RES}"
+	if sudo systemctl status massad 2>&1 | grep -q running; then
+		sudo systemctl restart massad
+		printf_n "
+You can view the node bootstrapping via ${C_LGn}massa_log${RES} command
+"
+	fi	
+}
 
 # Actions
 sudo apt install wget -y &>/dev/null
-. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+. <(wget -qO-  https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
 cd
 $function
