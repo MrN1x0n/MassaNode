@@ -63,8 +63,9 @@ EOF
 sudo mv $HOME/massad.service /etc/systemd/system/
 
 #прописываем бутстрапы
+write_bootstraps() {
 	local config_path="$HOME/massa/massa-node/base_config/config.toml"
-	local bootstrap_list=`wget -qO- https://raw.githubusercontent.com/SecorD0/Massa/main/bootstrap_list.txt | shuf -n42 | awk '{ print "        "$0"," }'`
+	local bootstrap_list=`wget -qO- https://raw.githubusercontent.com/MrN1x0n/MassaNode/main/bootstrap_list.txt | shuf -n42 | awk '{ print "        "$0"," }'`
 	local len=`wc -l < "$config_path"`
 	local start=`grep -n bootstrap_list "$config_path" | cut -d: -f1`
 	local end=`grep -n "\[optionnal\] port on which to listen" "$config_path" | cut -d: -f1`
@@ -92,7 +93,9 @@ EOF`
 		printf_n "
 You can view the node bootstrapping via ${C_LGn}massa_log${RES} command
 "
-	fi
+	fi	
+}
+write_bootstraps
 
 #запускаем службу и перезапускаем "демона", а также вызываем логи
 sudo systemctl enable massad
