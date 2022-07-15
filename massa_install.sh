@@ -62,43 +62,12 @@ EOF
 #переносим конфиг в систему
 sudo mv $HOME/massad.service /etc/systemd/system/
 
-#прописываем бутстрапы
-write_bootstraps() {
-	local config_path="$HOME/massa/massa-node/base_config/config.toml"
-	local bootstrap_list=`wget -qO- https://raw.githubusercontent.com/MrN1x0n/MassaNode/main/bootstrap_list.txt | shuf -n42 | awk '{ print "        "$0"," }'`
-	local len=`wc -l < "$config_path"`
-	local start=`grep -n bootstrap_list "$config_path" | cut -d: -f1`
-	local end=`grep -n "\[optionnal\] port on which to listen" "$config_path" | cut -d: -f1`
-	local end=$((end-1))
-	local first_part=`sed "${start},${len}d" "$config_path"`
-	local second_part=`cat <<EOF
-    bootstrap_list = [
-        ["149.202.86.103:31245", "P12UbyLJDS7zimGWf3LTHe8hYY67RdLke1iDRZqJbQQLHQSKPW8j"],
-        ["149.202.89.125:31245", "P12vxrYTQzS5TRzxLfFNYxn6PyEsphKWkdqx2mVfEuvJ9sPF43uq"],
-        ["158.69.120.215:31245", "P12rPDBmpnpnbECeAKDjbmeR19dYjAUwyLzsa8wmYJnkXLCNF28E"],
-        ["158.69.23.120:31245", "P1XxexKa3XNzvmakNmPawqFrE9Z2NFhfq1AhvV1Qx4zXq5p1Bp9"],
-        ["198.27.74.5:31245", "P1qxuqNnx9kyAMYxUfsYiv2gQd5viiBX126SzzexEdbbWd2vQKu"],
-        ["198.27.74.52:31245", "P1hdgsVsd4zkNp8cF1rdqqG6JPRQasAmx12QgJaJHBHFU1fRHEH"],
-        ["54.36.174.177:31245", "P1gEdBVEbRFbBxBtrjcTDDK9JPbJFDay27uiJRE3vmbFAFDKNh7"],
-        ["51.75.60.228:31245", "P13Ykon8Zo73PTKMruLViMMtE2rEG646JQ4sCcee2DnopmVM3P5"],
-${bootstrap_list}
-    ]
-EOF`
-	local third_part=`sed "1,${end}d" "$config_path"`
-	echo -e "${first_part}\n${second_part}\n${third_part}" > "$config_path"
-	sed -i -e "s%retry_delay *=.*%retry_delay = 10000%; " "$config_path"
-	printf_n "${C_LGn}Done!${RES}"
-	if sudo systemctl status massad 2>&1 | grep -q running; then
-		sudo systemctl restart massad
-		printf_n "
-You can view the node bootstrapping via ${C_LGn}massa_log${RES} command
-"
-	fi	
-}
-write_bootstraps
+. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
+. <(wget -qO- https://github.com/MrN1x0n/MassaNode/raw/main/multi_tool.sh) -op
+. <(wget -qO- https://github.com/MrN1x0n/MassaNode/raw/main/multi_tool.sh) -rb
+
 
 #запускаем службу и перезапускаем "демона", а также вызываем логи
 sudo systemctl enable massad
 sudo systemctl daemon-reload
 sudo systemctl restart massad && journalctl -u massad -f
-#Должна запуститься ноды и в логах написать, что подсоединилась к бутстрапу
