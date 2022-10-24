@@ -117,7 +117,7 @@ if [ "$language" = "RU" ]; then
 	t_err_mp2="\n${C_R}Не существует переменной massa_password с паролем!${RES}\n"
 	t_err_wp="\n${C_R}Неверный пароль!${RES}\n"
 	t_err_nwn="\n${C_R}Нода не работает!${RES}\nПосмотреть лог: ${C_LGn}massa_log${RES}\n"
-
+# Send Pull request with new texts to add a language - https://github.com/SecorD0/Massa/blob/main/cli_client.sh
 #elif [ "$language" = ".." ]; then
 else
 	t_ni1="\nNode ID:                ${C_LGn}%s${RES}"
@@ -232,11 +232,11 @@ wallet_info() {
 			else
 				printf_n "$t_wi6"
 			fi
-			local balance=`jq -r ".value.address_info.balance.candidate_ledger_info.balance" <<< "$wallet"`
+			local balance=`jq -r ".value.address_info.candidate_balance" <<< "$wallet"`
 			printf_n "$t_wi7" "$balance"
-			local total_rolls=`jq -r ".value.address_info.rolls.candidate_rolls" <<< "$wallet"`
+			local total_rolls=`jq -r ".value.address_info.candidate_rolls" <<< "$wallet"`
 			printf_n "$t_wi8" "$total_rolls"
-			local active_rolls=`jq -r ".value.address_info.rolls.active_rolls" <<< "$wallet"`
+			local active_rolls=`jq -r ".value.address_info.active_rolls" <<< "$wallet"`
 			printf_n "$t_wi9" "$active_rolls"
 			printf_n
 		done
@@ -245,7 +245,7 @@ wallet_info() {
 buy_rolls() {
 	local wallet_info=`./massa-client -p "$massa_password" -j wallet_info`
 	local main_address=`jq -r "[.[]] | .[0].address_info.address" <<< "$wallet_info"`
-	local balance=`jq -r "[.[]] | .[-1].address_info.balance.candidate_ledger_info.balance" <<< "$wallet_info"`
+	local balance=`jq -r "[.[]] | .[-1].address_info.candidate_balance" <<< "$wallet_info"`
 	local roll_count=`printf "%d" $(bc -l <<< "$balance/100") 2>/dev/null`
 	if [ "$roll_count" -eq "0" ]; then
 		printf_n "$t_br1"
