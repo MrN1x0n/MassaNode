@@ -117,7 +117,6 @@ if [ "$language" = "RU" ]; then
 	t_err_mp2="\n${C_R}Не существует переменной massa_password с паролем!${RES}\n"
 	t_err_wp="\n${C_R}Неверный пароль!${RES}\n"
 	t_err_nwn="\n${C_R}Нода не работает!${RES}\nПосмотреть лог: ${C_LGn}massa_log${RES}\n"
-# Send Pull request with new texts to add a language - https://github.com/SecorD0/Massa/blob/main/cli_client.sh
 #elif [ "$language" = ".." ]; then
 else
 	t_ni1="\nNode ID:                ${C_LGn}%s${RES}"
