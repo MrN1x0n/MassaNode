@@ -79,7 +79,7 @@ ${C_LGn}. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/misce
 "
 		return 1 2>/dev/null; exit 1
 	fi
-	local massa_version=`wget -qO- https://api.github.com/repos/massalabs/massa/releases/latest | jq -r ".tag_name"`
+	local massa_version=`MAIN.2.1`
 	wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/${massa_version}/massa_${massa_version}_release_linux.tar.gz"
 	if [ `wc -c < "$HOME/massa.tar.gz"` -ge 1000 ]; then
 		rm -rf $HOME/massa/
