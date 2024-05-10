@@ -48,13 +48,58 @@ while test $# -gt 0; do
 	esac
 done
 
+#!/bin/bash
+# Default variables
+function="install"
+source="false"
+
+# Options
+. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/colors.sh) --
+option_value(){ echo "$1" | sed -e 's%^--[^=]*=%%g; s%^-[^=]*=%%g'; }
+while test $# -gt 0; do
+	case "$1" in
+	-h|--help)
+		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+		echo
+		echo -e "${C_LGn}Functionality${RES}: the script performs many actions related to a Massa node"
+		echo
+		echo -e "${C_LGn}Usage${RES}: script ${C_LGn}[OPTIONS]${RES}"
+		echo
+		echo -e "${C_LGn}Options${RES}:"
+		echo -e "  -h,  --help        show the help page"
+		echo -e "  -op, --open-ports  open required ports"
+		echo -e "  -s,  --source      install the node using a source code"
+		echo -e "  -un, --uninstall   unistall the node"
+		echo
+		echo -e "You can use either \"=\" or \" \" as an option and value ${C_LGn}delimiter${RES}"
+		echo
+		return 0 2>/dev/null; exit 0
+		;;
+	-op|--open-ports)
+		function="open_ports"
+		shift
+		;;
+	-s|--source)
+		function="install_source"
+		shift
+		;;
+	-un|--uninstall)
+		function="uninstall"
+		shift
+		;;
+	*|--)
+		break
+		;;
+	esac
+done
+
 # Functions
 printf_n(){ printf "$1\n" "${@:2}"; }
 open_ports() {
 	sudo systemctl stop massad
-	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MassaNode/main/port_opening.sh) 31244 31245
+	. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/ports_opening.sh) 31244 31245
 	sudo tee <<EOF >/dev/null $HOME/massa/massa-node/config/config.toml
-[network]
+[protocol]
 routable_ip = "`wget -qO- eth0.me`"
 EOF
 	sudo systemctl restart massad
@@ -63,21 +108,25 @@ update() {
 	printf_n "${C_LGn}Node updating...${RES}"
 	if [ ! -n "$massa_password" ]; then
 		printf_n "\n${C_R}There is no massa_password variable with the password, enter it to save it in the variable!${RES}"
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_password
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_password
 	fi
 	if [ ! -n "$massa_password" ]; then
 		printf_n "${C_R}There is no massa_password variable with the password!${RES}\n"
 		return 1 2>/dev/null; exit 1
 	fi
 	mkdir -p $HOME/massa_backup
-	if [ ! -f $HOME/massa_backup/wallet.dat ]; then
-		sudo cp $HOME/massa/massa-client/wallet.dat $HOME/massa_backup/wallet.dat
+	if [ ! -d $HOME/massa_backup/wallets ]; then
+		sudo cp -r $HOME/massa/massa-client/wallets $HOME/massa_backup/wallets
 	fi
 	if [ ! -f $HOME/massa_backup/node_privkey.key ]; then
 		sudo cp $HOME/massa/massa-node/config/node_privkey.key $HOME/massa_backup/node_privkey.key
 	fi
 	if grep -q "wrong password" <<< `cd $HOME/massa/massa-client/; ./massa-client -p "$massa_password" 2>&1; cd`; then
-		printf_n "\n${C_R}Wrong password!${RES}\n"
+		printf_n "
+${C_R}Wrong password!${RES}
+Enter the correct one with the following command and run the script again.
+${C_LGn}. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_password${RES}
+"
 		return 1 2>/dev/null; exit 1
 	fi
 	local massa_version=`wget -qO- https://api.github.com/repos/massalabs/massa/releases/latest | jq -r ".tag_name"`
@@ -106,9 +155,9 @@ EOF
 		sudo systemctl daemon-reload
 		sudo cp $HOME/massa_backup/node_privkey.key $HOME/massa/massa-node/config/node_privkey.key
 		open_ports
-		sudo cp $HOME/massa_backup/wallet.dat $HOME/massa/massa-client/wallet.dat
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+		sudo cp -r $HOME/massa_backup/wallets $HOME/massa/massa-client/wallets
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/Massa/main/insert_variables.sh)
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/logo.sh)
 		printf_n "
 The node was ${C_LGn}updated${RES}.
 
@@ -133,7 +182,7 @@ install() {
 	else
 		if [ ! -n "$massa_password" ]; then
 			printf_n "\n${C_LGn}Come up with a password to encrypt the keys and enter it.${RES}"
-			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_password
+			. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_password
 		fi
 		if [ ! -n "$massa_password" ]; then
 			printf_n "${C_R}There is no massa_password variable with the password!${RES}\n"
@@ -149,8 +198,7 @@ install() {
 			tar -xvf $HOME/massa.tar.gz
 			rm -rf $HOME/massa.tar.gz
 			chmod +x $HOME/massa/massa-node/massa-node $HOME/massa/massa-client/massa-client
-			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variables.sh)
-			replace_bootstraps
+			. <(wget -qO- https://raw.githubusercontent.com/SecorD0/Massa/main/insert_variables.sh)
 			sudo tee <<EOF >/dev/null /etc/systemd/system/massad.service
 [Unit]
 Description=Massa Node
@@ -171,12 +219,13 @@ EOF
 			sudo systemctl daemon-reload
 			open_ports
 			cd $HOME/massa/massa-client/
+			printf_n "${C_LGn}Waiting for the node to start...${RES}"
 			if [ ! -d $HOME/massa_backup ]; then
-				./massa-client -p "$massa_password" wallet_generate_secret_key &>/dev/null
-				mkdir -p $HOME/massa_backup
-				sudo cp $HOME/massa/massa-client/wallet.dat $HOME/massa_backup/wallet.dat
 				while true; do
 					if [ -f $HOME/massa/massa-node/config/node_privkey.key ]; then
+						./massa-client -p "$massa_password" wallet_generate_secret_key
+						mkdir -p $HOME/massa_backup
+						sudo cp -r $HOME/massa/massa-client/wallets $HOME/massa_backup/wallets
 						sudo cp $HOME/massa/massa-node/config/node_privkey.key $HOME/massa_backup/node_privkey.key
 						break
 					else
@@ -187,11 +236,11 @@ EOF
 			else
 				sudo cp $HOME/massa_backup/node_privkey.key $HOME/massa/massa-node/config/node_privkey.key
 				sudo systemctl restart massad
-				sudo cp $HOME/massa_backup/wallet.dat $HOME/massa/massa-client/wallet.dat	
+				sudo cp -r $HOME/massa_backup/wallets $HOME/massa/massa-client/wallets
 			fi
 			printf_n "${C_LGn}Done!${RES}"
 			cd
-			. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+			. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/logo.sh)
 			printf_n "
 The node was ${C_LGn}started${RES}.
 
@@ -222,7 +271,7 @@ install_source() {
 		sudo apt upgrade -y
 		sudo apt install jq curl pkg-config git build-essential libssl-dev -y
 		printf_n "${C_LGn}Node installation...${RES}"
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/rust.sh) -n
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/installers/rust.sh) -n
 		if [ ! -d $HOME/massa/ ]; then
 			git clone --branch testnet https://gitlab.com/massalabs/massa.git
 		fi
@@ -251,11 +300,11 @@ ${C_LGn}Client installation...${RES}
 "
 		cd $HOME/massa/massa-client/
 		cargo run --release wallet_new_privkey
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_log -v "sudo journalctl -f -n 100 -u massad" -a
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_log -v "sudo journalctl -f -n 100 -u massad" -a
 	fi
 	printf_n "${C_LGn}Done!${RES}"
 	cd
-	. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+	. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/logo.sh)
 	printf_n "
 The node was ${C_LGn}started${RES}.
 
@@ -277,29 +326,33 @@ uninstall() {
 	sudo systemctl stop massad
 	if [ ! -d $HOME/massa_backup ]; then
 		mkdir $HOME/massa_backup
-		sudo cp $HOME/massa/massa-client/wallet.dat $HOME/massa_backup/wallet.dat
+		sudo cp -r $HOME/massa/massa-client/wallets $HOME/massa_backup/wallets
 		sudo cp $HOME/massa/massa-node/config/node_privkey.key $HOME/massa_backup/node_privkey.key
 	fi
-	if [ -f $HOME/massa_backup/wallet.dat ] && [ -f $HOME/massa_backup/node_privkey.key ]; then
+	if [ -d $HOME/massa_backup/wallets ] && [ -f $HOME/massa_backup/node_privkey.key ]; then
 		rm -rf $HOME/massa/ /etc/systemd/system/massa.service /etc/systemd/system/massad.service
 		sudo systemctl daemon-reload
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_log -da
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_client -da
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_cli_client -da
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_node_info -da
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_wallet_info -da
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/insert_variable.sh) -n massa_buy_rolls -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_password -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_log -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_client -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_cli_client -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_node_info -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_wallet_info -da
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/miscellaneous/insert_variable.sh) -n massa_buy_rolls -da
 		printf_n "${C_LGn}Done!${RES}"
 	else
 		printf_n "${C_LR}No backup of the necessary files was found, delete the node manually!${RES}"
 	fi	
 }
 replace_bootstraps() {
+	printf_n "This function deprecated!"
+	return 0 2>/dev/null; exit 0
+	
 	local config_path="$HOME/massa/massa-node/base_config/config.toml"
 	local bootstrap_list=`wget -qO- https://raw.githubusercontent.com/SecorD0/Massa/main/bootstrap_list.txt | shuf -n42 | awk '{ print "        "$0"," }'`
 	local len=`wc -l < "$config_path"`
 	local start=`grep -n bootstrap_list "$config_path" | cut -d: -f1`
-	local end=`grep -n "\[optionnal\] port on which to listen" "$config_path" | cut -d: -f1`
+	local end=`grep -n "Path to the bootstrap whitelist file. This whitelist define IPs that can bootstrap on your node." "$config_path" | cut -d: -f1`
 	local end=$((end-1))
 	local first_part=`sed "${start},${len}d" "$config_path"`
 	local second_part=`cat <<EOF
@@ -317,7 +370,7 @@ ${bootstrap_list}
 EOF`
 	local third_part=`sed "1,${end}d" "$config_path"`
 	echo -e "${first_part}\n${second_part}\n${third_part}" > "$config_path"
-	sed -i -e "s%retry_delay *=.*%retry_delay = 10000%; " "$config_path"
+	sed -i.bak -e "s%retry_delay *=.*%retry_delay = 10000%; " "$config_path"
 	printf_n "${C_LGn}Done!${RES}"
 	if sudo systemctl status massad 2>&1 | grep -q running; then
 		sudo systemctl restart massad
