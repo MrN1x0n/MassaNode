@@ -9,7 +9,7 @@ option_value(){ echo "$1" | sed -e 's%^--[^=]*=%%g; s%^-[^=]*=%%g'; }
 while test $# -gt 0; do
 	case "$1" in
 	-h|--help)
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+		. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/logo.sh)
 		echo
 		echo -e "${C_LGn}Functionality${RES}: the script performs many actions related to a Massa node"
 		echo
@@ -22,6 +22,10 @@ while test $# -gt 0; do
 		echo -e "  -un, --uninstall   unistall the node"
 		echo
 		echo -e "You can use either \"=\" or \" \" as an option and value ${C_LGn}delimiter${RES}"
+		echo
+		echo -e "${C_LGn}Useful URLs${RES}:"
+		echo -e "https://github.com/SecorD0/Massa/blob/main/multi_tool.sh - script URL"
+		echo -e "https://t.me/OnePackage — noderun and tech community"
 		echo
 		return 0 2>/dev/null; exit 0
 		;;
@@ -79,8 +83,8 @@ ${C_LGn}. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/misce
 "
 		return 1 2>/dev/null; exit 1
 	fi
-	local massa_version=`MAIN.2.1`
-	wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/${massa_version}/massa_${massa_version}_release_linux.tar.gz"
+	local massa_version=`wget -qO- https://api.github.com/repos/massalabs/massa/releases/latest | jq -r ".tag_name"`
+	wget -qO $HOME/massa.tar.gz "https://github.com/massalabs/massa/releases/download/MAIN.2.1/massa_MAIN.2.1_release_linux.tar.gz"
 	if [ `wc -c < "$HOME/massa.tar.gz"` -ge 1000 ]; then
 		rm -rf $HOME/massa/
 		tar -xvf $HOME/massa.tar.gz
@@ -332,6 +336,6 @@ You can view the node bootstrapping via ${C_LGn}massa_log${RES} command
 
 # Actions
 sudo apt install wget -y &>/dev/null
-. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
+. <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/logo.sh)
 cd
 $function
