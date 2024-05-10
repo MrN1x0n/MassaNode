@@ -4,56 +4,6 @@ function="install"
 source="false"
 
 # Options
-. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/colors.sh) --
-option_value(){ echo "$1" | sed -e 's%^--[^=]*=%%g; s%^-[^=]*=%%g'; }
-while test $# -gt 0; do
-	case "$1" in
-	-h|--help)
-		. <(wget -qO- https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.sh)
-		echo
-		echo -e "${C_LGn}Functionality${RES}: the script performs many actions related to a Massa node"
-		echo
-		echo -e "${C_LGn}Usage${RES}: script ${C_LGn}[OPTIONS]${RES}"
-		echo
-		echo -e "${C_LGn}Options${RES}:"
-		echo -e "  -h,  --help        show the help page"
-		echo -e "  -op, --open-ports  open required ports"
-		echo -e "  -s,  --source      install the node using a source code"
-		echo -e "  -rb                replace bootstraps"
-		echo -e "  -un, --uninstall   unistall the node"
-		echo
-		echo -e "You can use either \"=\" or \" \" as an option and value ${C_LGn}delimiter${RES}"
-		echo
-		return 0
-		;;
-	-op|--open-ports)
-		function="open_ports"
-		shift
-		;;
-	-s|--source)
-		function="install_source"
-		shift
-		;;
-	-rb)
-		function="replace_bootstraps"
-		shift
-		;;
-	-un|--uninstall)
-		function="uninstall"
-		shift
-		;;
-	*|--)
-		break
-		;;
-	esac
-done
-
-#!/bin/bash
-# Default variables
-function="install"
-source="false"
-
-# Options
 . <(wget -qO- https://raw.githubusercontent.com/SecorD0/utils/main/colors.sh) --
 option_value(){ echo "$1" | sed -e 's%^--[^=]*=%%g; s%^-[^=]*=%%g'; }
 while test $# -gt 0; do
